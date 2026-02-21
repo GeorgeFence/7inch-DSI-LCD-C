@@ -46,11 +46,12 @@
  */
 #define WS_BL_I2C_ADDR          0x45
 
-/* Register map exposed by the ATtiny MCU */
-#define WS_REG_PWR              0x85  /* 1 = display on, 0 = display off   */
-#define WS_REG_BRIGHTNESS       0x86  /* 0 (off) … 255 (full brightness)   */
+/* Register map exposed by the ATtiny MCU (verified from 5.x pre-built binaries) */
+#define WS_REG_PWR              0xAD  /* 1 = display on, 0 = display off   */
+#define WS_REG_BRIGHTNESS       0xAB  /* 0 (off) … 254 (full brightness)   */
+#define WS_REG_BRIGHTNESS_APPLY 0xAA  /* write 1 to commit brightness      */
 
-#define WS_MAX_BRIGHTNESS       255
+#define WS_MAX_BRIGHTNESS       254
 #define WS_DEFAULT_BRIGHTNESS   128
 
 /* ---------------------------------------------------------------------------
@@ -138,8 +139,13 @@ static int ws_i2c_write(struct ws_panel *ws, u8 reg, u8 val)
 
 static int ws_set_brightness(struct ws_panel *ws, u8 brightness)
 {
+	int ret;
+
 	ws->brightness = brightness;
-	return ws_i2c_write(ws, WS_REG_BRIGHTNESS, brightness);
+	ret = ws_i2c_write(ws, WS_REG_BRIGHTNESS, brightness);
+	if (ret)
+		return ret;
+	return ws_i2c_write(ws, WS_REG_BRIGHTNESS_APPLY, 1);
 }
 
 /* ---------------------------------------------------------------------------

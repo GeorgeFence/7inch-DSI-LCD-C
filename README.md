@@ -30,19 +30,20 @@ Backlight: Software for controlling the brightness of 7inch DSI LCD (C), if you 
 | `64/5.10.92` | aarch64 (64-bit) | 5.10.92 | Pi3, Pi4 |
 | `64/5.10.103` | aarch64 (64-bit) | 5.10.103 | Pi3, Pi4 |
 | `64/5.15.32` | aarch64 (64-bit) | 5.15.32 | Pi3, Pi4 |
-| **`64/6.12.47`** | **aarch64 (64-bit)** | **6.12.47+rpt-rpi-v8** | **Pi4, CM4** |
+| `64/6.12.47` | aarch64 (64-bit) | 6.12.47+rpt-rpi-v8 | Pi4, CM4 |
+| **`64/6.12.62`** | **aarch64 (64-bit)** | **6.12.62+rpt-rpi-v8** | **Pi4, CM4** |
 
 ---
 
-## Kernel 6.12.47+rpt-rpi-v8 (aarch64) — Build from Source
+## Kernel 6.12.62+rpt-rpi-v8 (aarch64) — Build from Source
 
-The `64/6.12.47/` directory contains **C source code** and build infrastructure
+The `64/6.12.62/` directory contains **C source code** and build infrastructure
 that must be compiled on the target Raspberry Pi against the running kernel headers.
 
 ### Target System
 
 - **Board**: Raspberry Pi 4 Model B or Compute Module 4
-- **Kernel**: `6.12.47+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.12.47-1+rpt1 (2025-09-16) aarch64`
+- **Kernel**: `6.12.62+rpt-rpi-v8 #1 SMP PREEMPT Debian 1:6.12.62-1+rpt1 (2025-09-16) aarch64`
 - **OS**: Raspberry Pi OS Bookworm (64-bit)
 - **Boot config**: `/boot/firmware/config.txt`
 
@@ -56,7 +57,7 @@ sudo apt-get install raspberrypi-kernel-headers build-essential device-tree-comp
 ### Quick Install (automated)
 
 ```bash
-cd 64/6.12.47
+cd 64/6.12.62
 chmod +x WS_7inchDSI1024x600_MAIN.sh
 sudo ./WS_7inchDSI1024x600_MAIN.sh
 sudo reboot
@@ -69,7 +70,7 @@ device tree overlays from source, installs them, and updates
 ### Manual Build & Install
 
 ```bash
-cd 64/6.12.47/pi4/Driver_package
+cd 64/6.12.62/pi4/Driver_package
 
 # 1. Build kernel modules
 make
@@ -102,15 +103,17 @@ sudo reboot
 | Resolution | 1024 x 600 @ 60 Hz |
 | Pixel clock | 50 MHz |
 | Backlight I2C | Bus from DT `I2C_bus` property, addr 0x45 |
+| Power register | `0xAD` (write 1 = on, 0 = off) |
+| Brightness register | `0xAB` (0–254); write 1 to `0xAA` to apply |
 | DRM panel funcs | `prepare`, `unprepare`, `enable`, `disable`, `get_modes` |
 | Backlight framework | `devm_backlight_device_register()` |
 
 **Initialization sequence:**
 1. `ws_panel_probe()` — DSI link configured, I2C backlight client created, DRM panel registered, `mipi_dsi_attach()` called
-2. `ws_panel_prepare()` — powers on display via I2C register 0x85, waits 120 ms
-3. `ws_panel_enable()` — turns on backlight via I2C register 0x86
-4. `ws_panel_disable()` — turns off backlight
-5. `ws_panel_unprepare()` — powers off display
+2. `ws_panel_prepare()` — powers on display via I2C register 0xAD (write 1), waits 120 ms
+3. `ws_panel_enable()` — sets brightness via I2C register 0xAB, applies via 0xAA (write 1)
+4. `ws_panel_disable()` — turns off backlight (brightness → 0, apply 0xAA)
+5. `ws_panel_unprepare()` — powers off display via I2C register 0xAD (write 0)
 6. `ws_panel_remove()` — detaches DSI, removes DRM panel, releases I2C resources
 
 #### Touch Driver (`WS_7inchDSI1024x600_Touch.ko`)
@@ -174,7 +177,7 @@ Pi4目录驱动支持的主板有：Raspberry Pi 4 Model B和Compute Module 4
 
 需要根据相应的树莓派版本选择安装对应驱动。
 
-**新增支持 (64/6.12.47)**: 适用于 Raspberry Pi 4 / CM4，内核版本 6.12.47+rpt-rpi-v8 (aarch64)。
+**新增支持 (64/6.12.62)**: 适用于 Raspberry Pi 4 / CM4，内核版本 6.12.62+rpt-rpi-v8 (aarch64)。
 此版本提供源码，需要在目标树莓派上编译安装。
 
 Backlight是7inch DSI LCD (C)的背光控制上位机程序，如果你不需要控制7inch DSI LCD (C)的亮度，则可不使用。
