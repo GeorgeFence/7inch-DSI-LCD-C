@@ -103,15 +103,17 @@ sudo reboot
 | Resolution | 1024 x 600 @ 60 Hz |
 | Pixel clock | 50 MHz |
 | Backlight I2C | Bus from DT `I2C_bus` property, addr 0x45 |
+| Power register | `0xAD` (write 1 = on, 0 = off) |
+| Brightness register | `0xAB` (0–254); write 1 to `0xAA` to apply |
 | DRM panel funcs | `prepare`, `unprepare`, `enable`, `disable`, `get_modes` |
 | Backlight framework | `devm_backlight_device_register()` |
 
 **Initialization sequence:**
 1. `ws_panel_probe()` — DSI link configured, I2C backlight client created, DRM panel registered, `mipi_dsi_attach()` called
-2. `ws_panel_prepare()` — powers on display via I2C register 0x85, waits 120 ms
-3. `ws_panel_enable()` — turns on backlight via I2C register 0x86
-4. `ws_panel_disable()` — turns off backlight
-5. `ws_panel_unprepare()` — powers off display
+2. `ws_panel_prepare()` — powers on display via I2C register 0xAD (write 1), waits 120 ms
+3. `ws_panel_enable()` — sets brightness via I2C register 0xAB, applies via 0xAA (write 1)
+4. `ws_panel_disable()` — turns off backlight (brightness → 0, apply 0xAA)
+5. `ws_panel_unprepare()` — powers off display via I2C register 0xAD (write 0)
 6. `ws_panel_remove()` — detaches DSI, removes DRM panel, releases I2C resources
 
 #### Touch Driver (`WS_7inchDSI1024x600_Touch.ko`)
