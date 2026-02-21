@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Device Tree overlay for the Waveshare 7inch DSI LCD (C) touch driver.
+ *
+ * Target: Raspberry Pi 4 / CM4, kernel 6.12.47+rpt-rpi-v8 (aarch64)
+ *
+ * This overlay instantiates the WS_7inchDSI1024x600_Touch I2C device
+ * on I2C bus 1 (the standard Raspberry Pi 4 I2C port, pins 3 and 5).
+ *
+ * Usage in /boot/firmware/config.txt (Raspberry Pi OS Bookworm):
+ *   dtparam=i2c_arm=on
+ *   dtoverlay=WS_7inchDSI1024x600_Touch
+ *
+ * The touch controller may be at I2C address 0x14 or 0x5D depending on
+ * the hardware variant; the default here is 0x14 (most common).
+ * Change "reg = <0x14>" to "reg = <0x5d>" if your panel uses 0x5D.
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2711";
+
+	fragment@0 {
+		target = <&i2c1>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells    = <0>;
+			status = "okay";
+
+			/*
+			 * Touch controller node.
+			 *
+			 * "WS_7inchDSI1024x600_Touch_compatible" must match
+			 * the compatible string in WS_7inchDSI1024x600_Touch.c.
+			 *
+			 * Optional touchscreen properties (standard kernel ABI):
+			 *   touchscreen-inverted-x  – mirror the X axis
+			 *   touchscreen-inverted-y  – mirror the Y axis
+			 *   touchscreen-swapped-x-y – swap X and Y axes
+			 */
+			ws_touch: touchscreen@14 {
+				compatible = "WS_7inchDSI1024x600_Touch_compatible";
+				reg        = <0x14>;
+
+				touchscreen-size-x    = <1024>;
+				touchscreen-size-y    = <600>;
+			};
+		};
+	};
+};
