@@ -1,0 +1,64 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Device Tree overlay for the Waveshare 7inch DSI LCD (C) screen driver.
+ *
+ * Target: Raspberry Pi 4 / CM4, kernel 6.12.62+rpt-rpi-v8 (aarch64)
+ *
+ * This overlay:
+ *   1. Enables the vc4-kms-dsi-generic MIPI DSI host on DSI-1.
+ *   2. Instantiates the WS_7inchDSI1024x600_Screen panel driver node.
+ *
+ * Usage in /boot/firmware/config.txt (Raspberry Pi OS Bookworm):
+ *   ignore_lcd=1
+ *   dtoverlay=vc4-kms-v3d
+ *   dtoverlay=WS_7inchDSI1024x600_Screen
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	compatible = "brcm,bcm2711";
+
+	fragment@0 {
+		target = <&dsi1>;
+		__overlay__ {
+			#address-cells = <1>;
+			#size-cells    = <0>;
+			status = "okay";
+			port {
+				dsi1_out: endpoint {
+					remote-endpoint = <&panel_dsi_in>;
+				};
+			};
+
+			/*
+			 * Panel node.
+			 *
+			 * "WS_7inchDSI1024x600_Screen_compatible" must match
+			 * the compatible string in WS_7inchDSI1024x600_Screen.c
+			 * and the OF match table declared there.
+			 *
+			 * Properties:
+			 *   reg      – DSI virtual channel (0)
+			 *   I2C_bus  – I2C bus number for the backlight MCU
+			 *              (bus 1 = the standard RPi I2C1 port)
+			 *   Backlight – initial brightness (0–255)
+			 */
+			ws_panel: panel@0 {
+				compatible    = "WS_7inchDSI1024x600_Screen_compatible";
+				reg           = <0>;
+
+				/* Backlight controller (ATtiny MCU on the LCD board) */
+				I2C_bus       = <1>;
+				Backlight     = <128>;
+
+				port {
+					panel_dsi_in: endpoint {
+						remote-endpoint = <&dsi1_out>;
+					};
+				};
+			};
+		};
+	};
+};
