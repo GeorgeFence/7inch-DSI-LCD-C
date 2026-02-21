@@ -441,11 +441,7 @@ static int ws_panel_probe(struct mipi_dsi_device *dsi)
 	drm_panel_init(&ws->base, dev, &ws_panel_funcs,
 		       DRM_MODE_CONNECTOR_DSI);
 
-	ret = drm_panel_add(&ws->base);
-	if (ret < 0) {
-		dev_err(dev, "drm_panel_add failed: %d\n", ret);
-		return ret;
-	}
+	drm_panel_add(&ws->base);
 
 	ret = mipi_dsi_attach(dsi);
 	if (ret < 0) {
