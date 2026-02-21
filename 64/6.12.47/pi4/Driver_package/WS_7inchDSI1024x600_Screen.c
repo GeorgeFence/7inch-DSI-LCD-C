@@ -334,7 +334,11 @@ static int ws_setup_backlight_i2c(struct ws_panel *ws,
 				  struct device *dev)
 {
 	struct i2c_board_info binfo = {
-		I2C_BOARD_INFO("rpi_backlight", WS_BL_I2C_ADDR),
+		/*
+		 * Use a driver-specific name to avoid binding the upstream
+		 * rpi_backlight driver to this device.
+		 */
+		I2C_BOARD_INFO("ws-backlight", WS_BL_I2C_ADDR),
 	};
 	struct backlight_properties bl_props = {
 		.type       = BACKLIGHT_RAW,
