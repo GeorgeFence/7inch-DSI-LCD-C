@@ -1,0 +1,10 @@
+# Kbuild – kernel object list for the Waveshare 7inch DSI LCD (C) drivers
+#
+# Builds two out-of-tree kernel modules:
+#   WS_7inchDSI1024x600_Screen.ko  – MIPI DSI panel driver
+#   WS_7inchDSI1024x600_Touch.ko   – I2C capacitive touchscreen driver
+#
+# Target kernel: 6.12.62+rpt-rpi-v8 (aarch64)
+
+obj-m += WS_7inchDSI1024x600_Screen.o
+obj-m += WS_7inchDSI1024x600_Touch.o
